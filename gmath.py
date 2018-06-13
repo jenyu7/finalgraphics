@@ -9,14 +9,13 @@ COLOR = 1
 SPECULAR_EXP = 4
 
 #lighting functions
-def get_lighting(normal, view, ambient, light, areflect, dreflect, sreflect ):
+def get_lighting(normal, view, ambient, lights, constants):
     normalize(normal)
-    normalize(light[LOCATION])
     normalize(view)
 
-    a = calculate_ambient(ambient, areflect)
-    d = calculate_diffuse(light, dreflect, normal)
-    s = calculate_specular(light, sreflect, view, normal)
+    a = calculate_ambient(ambient, constants)
+    d = calculate_diffuse(normal, lights, constants)
+    s = calculate_specular(normal, lights, constants, view)
 
     i = [0, 0, 0]
     i[RED] = int(a[RED] + d[RED] + s[RED])
@@ -27,46 +26,45 @@ def get_lighting(normal, view, ambient, light, areflect, dreflect, sreflect ):
     return i
 
 
-def calculate_ambient(alight, areflect):
+def calculate_ambient(ambient, constants):
     a = [0, 0, 0]
-    a[RED] = alight[RED] * areflect[RED]
-    a[GREEN] = alight[GREEN] * areflect[GREEN]
-    a[BLUE] = alight[BLUE] * areflect[BLUE]
+    a[RED] = ambient[RED] * constants['red'][0]
+    a[GREEN] = ambient[GREEN] * constants['green'][0]
+    a[BLUE] = ambient[BLUE] * constants['blue'][0]
     return a
 
-def calculate_diffuse(light, dreflect, normal):
+def calculate_diffuse(normal, lights, constants):
     d = [0, 0, 0]
 
-    dot = dot_product( light[LOCATION], normal)
-
-    dot = dot if dot > 0 else 0
-    d[RED] = light[COLOR][RED] * dreflect[RED] * dot
-    d[GREEN] = light[COLOR][GREEN] * dreflect[GREEN] * dot
-    d[BLUE] = light[COLOR][BLUE] * dreflect[BLUE] * dot
+    for light in lights:
+        light = lights[light]
+        normalize(light['location'])
+        dot = dot_product(normal, light['location'])
+        d[RED] += light['color'][RED] * constants['red'][1] * dot
+        d[GREEN] += light['color'][GREEN] * constants['green'][1] * dot
+        d[BLUE] += light['color'][BLUE] * constants['blue'][1] * dot
     return d
 
-def calculate_specular(light, sreflect, view, normal):
+def calculate_specular(normal, lights, constants, view):
     s = [0, 0, 0]
     n = [0, 0, 0]
 
-    result = 2 * dot_product(light[LOCATION], normal)
-    n[0] = (normal[0] * result) - light[LOCATION][0]
-    n[1] = (normal[1] * result) - light[LOCATION][1]
-    n[2] = (normal[2] * result) - light[LOCATION][2]
-
-    result = dot_product(n, view)
-    result = result if result > 0 else 0
-    result = pow( result, SPECULAR_EXP )
-
-    s[RED] = light[COLOR][RED] * sreflect[RED] * result
-    s[GREEN] = light[COLOR][GREEN] * sreflect[GREEN] * result
-    s[BLUE] = light[COLOR][BLUE] * sreflect[BLUE] * result
+    for light in lights:
+        light = lights[light]
+        normalize(light['location'])
+        result = 2 * dot_product(light['location'], normal)
+        n[0] = (normal[0] * result) - light['location'][0]
+        n[1] = (normal[1] * result) - light['location'][1]
+        n[2] = (normal[2] * result) - light['location'][2]
+        result = dot_product(n, view)
+        result = pow(result, SPECULAR_EXP) if result > 0 else 0
+        s[RED] += light['color'][RED] * constants['red'][2] * result
+        s[GREEN] += light['color'][GREEN] * constants['green'][2] * result
+        s[BLUE] += light['color'][BLUE] * constants['blue'][2] * result
     return s
 
 def limit_color(color):
-    color[RED] = 255 if color[RED] > 255 else color[RED]
-    color[GREEN] = 255 if color[GREEN] > 255 else color[GREEN]
-    color[BLUE] = 255 if color[BLUE] > 255 else color[BLUE]
+    color[:] = [min((max((int(c),0)), 255)) for c in color]
 
 
 #vector functions

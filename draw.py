@@ -3,6 +3,36 @@ from matrix import *
 from math import *
 from gmath import *
 
+def add_mesh(mat, filen):
+    src = open(filen, "r")
+    lines = src.read().split("\n")
+    src.close()
+    vertices = []
+    polygons = []
+    for line in lines:
+        if line.startswith("v "):
+            coords = []
+            for coord in line.split()[1:]:
+                coords.append(float(coord))
+            vertices.append(coords)
+        elif line.startswith("f "):
+            indices = []
+            for i in line.split()[1:]:
+                i = int(i.split("/")[0])
+                if i > 0:
+                    i -= 1
+                indices.append(i)
+            polygons.append(indices)
+    for polygon in polygons:
+        p0 = vertices[polygon[0]]
+        for i in xrange(1, len(polygon)-1):
+            p1 = vertices[polygon[i]]
+            p2 = vertices[polygon[i + 1]]
+            add_polygon(mat,
+                        p0[0], p0[1], p0[2],
+                        p1[0], p1[1], p1[2],
+                        p2[0], p2[1], p2[2])
+
 def scanline_convert(polygons, i, screen, zbuffer, color ):
     flip = False
     BOT = 0
@@ -13,10 +43,6 @@ def scanline_convert(polygons, i, screen, zbuffer, color ):
                (polygons[i+1][0], polygons[i+1][1], polygons[i+1][2]),
                (polygons[i+2][0], polygons[i+2][1], polygons[i+2][2]) ]
 
-    # color = [0,0,0]
-    # color[RED] = (23*(i/3)) %256
-    # color[GREEN] = (109*(i/3)) %256
-    # color[BLUE] = (227*(i/3)) %256
 
     points.sort(key = lambda x: x[1])
     x0 = points[BOT][0]
@@ -56,8 +82,8 @@ def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x1, y1, z1);
     add_point(polygons, x2, y2, z2);
 
-def draw_polygons( matrix, screen, zbuffer, view, ambient, light, areflect, dreflect, sreflect):
-    if len(matrix) < 2:
+def draw_polygons( matrix, screen, zbuffer, view, ambient, lights, constants):
+    if len(matrix) < 3:
         print 'Need at least 3 points to draw'
         return
 
@@ -67,30 +93,8 @@ def draw_polygons( matrix, screen, zbuffer, view, ambient, light, areflect, dref
         normal = calculate_normal(matrix, point)[:]
         if dot_product(normal, view) > 0:
 
-            color = get_lighting(normal, view, ambient, light, areflect, dreflect, sreflect )
+            color = get_lighting(normal, view, ambient, lights, constants)
             scanline_convert(matrix, point, screen, zbuffer, color)
-
-            # draw_line( int(matrix[point][0]),
-            #            int(matrix[point][1]),
-            #            matrix[point][2],
-            #            int(matrix[point+1][0]),
-            #            int(matrix[point+1][1]),
-            #            matrix[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(matrix[point+2][0]),
-            #            int(matrix[point+2][1]),
-            #            matrix[point+2][2],
-            #            int(matrix[point+1][0]),
-            #            int(matrix[point+1][1]),
-            #            matrix[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(matrix[point][0]),
-            #            int(matrix[point][1]),
-            #            matrix[point][2],
-            #            int(matrix[point+2][0]),
-            #            int(matrix[point+2][1]),
-            #            matrix[point+2][2],
-            #            screen, zbuffer, color)
         point+= 3
 
 

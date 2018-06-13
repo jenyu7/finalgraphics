@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE
-from os import remove, execlp, fork
+from os import remove, execlp, fork, wait
 
 #constants
 XRES = 500
@@ -80,3 +80,4 @@ def make_animation( name ):
     f = fork()
     if f == 0:
         execlp('convert', 'convert', '-delay', '3', name_arg, name)
+    wait()
