@@ -3,36 +3,6 @@ from matrix import *
 from math import *
 from gmath import *
 
-def add_mesh(mat, filen):
-    src = open(filen, "r")
-    lines = src.read().split("\n")
-    src.close()
-    vertices = []
-    polygons = []
-    for line in lines:
-        if line.startswith("v "):
-            coords = []
-            for coord in line.split()[1:]:
-                coords.append(float(coord))
-            vertices.append(coords)
-        elif line.startswith("f "):
-            indices = []
-            for i in line.split()[1:]:
-                i = int(i.split("/")[0])
-                if i > 0:
-                    i -= 1
-                indices.append(i)
-            polygons.append(indices)
-    for polygon in polygons:
-        p0 = vertices[polygon[0]]
-        for i in xrange(1, len(polygon)-1):
-            p1 = vertices[polygon[i]]
-            p2 = vertices[polygon[i + 1]]
-            add_polygon(mat,
-                        p0[0], p0[1], p0[2],
-                        p1[0], p1[1], p1[2],
-                        p2[0], p2[1], p2[2])
-
 def scanline_convert(polygons, i, screen, zbuffer, color ):
     flip = False
     BOT = 0

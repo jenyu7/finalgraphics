@@ -187,11 +187,6 @@ def run(filename):
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
-            elif c == 'mesh':
-                add_mesh(tmp, args[0])
-                matrix_mult(stack[-1], tmp)
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols[command['constants']][1])
-                tmp = []
             elif c == 'scale':
                 knob_value = symbols[command['knob']][1] if command['knob'] else 1
                 tmp = make_scale(args[0] * knob_value, args[1] * knob_value, args[2] * knob_value)
