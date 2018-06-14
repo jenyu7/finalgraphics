@@ -1,1 +1,2 @@
-# 12-graphics
+# Graphics Final Project
+## Jen Yu and Shannon Lau
